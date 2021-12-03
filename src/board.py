@@ -1,5 +1,8 @@
 import RPi.GPIO as gpio
 from time import sleep
+import os
+import curses
+
 from settings import *
 
 class Board:
@@ -61,7 +64,7 @@ class Board:
         """Scans each channel of the multiplexer."""
         
         # Setup variables
-        channel_values = ['','','','','','','','']
+        channel_values = ['','','','','','','','','','','','','','','','']
         channel = 0
 
         # Scan through each channel of the multiplexer
@@ -88,14 +91,31 @@ class Board:
             ['','','','','','','',''],
             ['','','','','','','','']
         ]
+
+        for m in [M0, M1, M2, M3]:
+            channel_values = read_multiplexer(self, m)
+            
+            # Update appropriate board values with the corresponding multiplexer channel_values
     
     def print_board(self):
         """Prints the current board."""
-        # Clear current terminal window
-        os.system('cls' if os.name == 'nt' else 'clear')
+        
+        def pboard(window):
+            # Print the current board
+            row = 0
+            column = 0
+            for i in self.board:
+                for j in reversed(i):
+                    window.addstr(row, column, j+" ")
+                    column += 2
+                window.addstr("\n")
+                row += 1
+                column = 0
+            window.refresh()
+            sleep(.25)
 
-        # Print the current board
-        for i in board:
-            for j in reversed(i):
-                print(j, end=" ")
-            print()
+        curses.wrapper(pboard)
+
+
+        
+
