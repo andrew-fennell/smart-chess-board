@@ -98,6 +98,11 @@ class Board:
             ['','','','','','','',''],
             ['','','','','','','','']
         ]
+
+        for m in [M1, M2, M3, M4]:
+            channel_values = self.read_multiplexer(self, m)
+            
+            # Update appropriate board values with the corresponding multiplexer channel_values
     
     def print_board(self):
         """Prints the current board."""
