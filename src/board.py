@@ -1,5 +1,7 @@
-import RPi.GPIO as gpio
+import os
 from time import sleep
+import RPi.GPIO as gpio
+
 from settings import *
 
 class Board:
@@ -61,18 +63,26 @@ class Board:
         """Scans each channel of the multiplexer."""
         
         # Setup variables
-        channel_values = ['','','','','','','','']
-        channel = 0
+        channel_values = [
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', '']
+        ]
 
         # Scan through each channel of the multiplexer
-        for i in range(16):
+        for channel in range(16):
             gpio.output(S0, channel_select[channel][S0])
             gpio.output(S1, channel_select[channel][S1])
             gpio.output(S2, channel_select[channel][S2])
             gpio.output(S3, channel_select[channel][S3])
 
             # Read channel value and store it in channel_values
-            channel_values[i] = not gpio.input(multiplexer)
+            row = 0
+            if channel < 8:
+                row = 0
+            else:
+                row = 1
+
+            channel_values[row][channel] = not gpio.input(multiplexer)
         
         return channel_values
     
@@ -95,7 +105,7 @@ class Board:
         os.system('cls' if os.name == 'nt' else 'clear')
 
         # Print the current board
-        for i in board:
+        for i in reversed(self.board):
             for j in reversed(i):
                 print(j, end=" ")
             print()

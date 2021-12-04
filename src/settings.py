@@ -1,11 +1,11 @@
 # Select pins
-S0 = 5
-S1 = 6
-S2 = 13
-S3 = 19
+S0 = 19
+S1 = 13
+S2 = 6
+S3 = 5
 
 # Multiplexer output pins
-M1 = 1
+M1 = 26
 M2 = 2
 M3 = 3
 M4 = 4
