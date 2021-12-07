@@ -6,9 +6,9 @@ S3 = 5
 
 # Multiplexer output pins
 M1 = 26
-M2 = 2
-M3 = 3
-M4 = 4
+M2 = 21
+M3 = 20
+M4 = 16
 
 # Channel select translation to binary
 channel_select = {
