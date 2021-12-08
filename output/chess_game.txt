@@ -1,3 +1,6 @@
-[Result "1/2-1/2"]
+[Date "2012.05.21"]
+[White "Anand, Viswanathan"]
+[Black "Gelfand, Boris"]
+[Result "1-0"]
 
-1. ee3 ee6 2. dd3 Bfd6 3. ee4 ff6 4. Bcf4 Bdxf4 5. Bfe2 Bfh6 6. Ngf3 ee5 7. O-O ff5 8. exf5 Nfxe5 
+1. dd4 Ngf6 2. cc4 gg6 3. ff3 cc5 4. dd5 dd6 5. ee4 Bfg7 6. Nge2 O-O 7. Nec3 Nfh5 8. Bcg5 Bgf6 9. Bgxf6 exf6 10. Qdd2 ff5 11. exf5 Bcxf5 12. gg4 Rfe8 13. Ked1 Bfxb1 14. Raxb1 Qdf6 15. gxh5 Qfxf3 16. Kdc2 Qfxh1 17. Qdf2 

@@ -226,7 +226,6 @@ class Board:
             print()
         
         print(self.pgn)
-        print(self.castling)
     
     def board_error(self):
         """Reset board to previously stable board."""
