@@ -24,7 +24,7 @@ The following steps will detail exactly how to start using the Smart Chess Board
 
 10. If an error occurs, try to reset the board to the position displayed in the console. 
 
-11. To end the game, press **CTRL+C**. This will prompt you to provide the results for the match.
+11. To end the game, press `CTRL+C`. This will prompt you to provide the results for the match.
 
 ## Issue Reporting
 
