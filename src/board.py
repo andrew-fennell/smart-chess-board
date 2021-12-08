@@ -20,17 +20,19 @@ class Board:
 
     def __init__(self):
         """Initiates chess board variables."""
+        
+        output = ""
 
         # Setup the initial position of the board
         self.board = [
-            ['R','N','B','Q','K','B','N','R'],
+            ['R','N','B','K','Q','B','N','R'],
             ['p','p','p','p','p','p','p','p'],
             ['-','-','-','-','-','-','-','-'],
             ['-','-','-','-','-','-','-','-'],
             ['-','-','-','-','-','-','-','-'],
             ['-','-','-','-','-','-','-','-'],
             ['p','p','p','p','p','p','p','p'],
-            ['R','N','B','Q','K','B','N','R']
+            ['R','N','B','K','Q','B','N','R']
         ]
 
         self.possession = [
@@ -48,6 +50,48 @@ class Board:
         
         self.moving_piece = None
         self.moving_piece_type = None
+        
+        self.potential_captured = {'row': None, 'col': None}
+        self.picked_up_from = {'row': None, 'col': None}
+        
+        self.current_move = 0
+        
+        self.castling = False
+        
+        self.pgn = ""
+        
+        self.stable_board = [
+            ['R','N','B','K','Q','B','N','R'],
+            ['p','p','p','p','p','p','p','p'],
+            ['-','-','-','-','-','-','-','-'],
+            ['-','-','-','-','-','-','-','-'],
+            ['-','-','-','-','-','-','-','-'],
+            ['-','-','-','-','-','-','-','-'],
+            ['p','p','p','p','p','p','p','p'],
+            ['R','N','B','K','Q','B','N','R']
+        ]
+        
+        self.stable_possession = [
+            ['b','b','b','b','b','b','b','b'],
+            ['b','b','b','b','b','b','b','b'],
+            ['-','-','-','-','-','-','-','-'],
+            ['-','-','-','-','-','-','-','-'],
+            ['-','-','-','-','-','-','-','-'],
+            ['-','-','-','-','-','-','-','-'],
+            ['w','w','w','w','w','w','w','w'],
+            ['w','w','w','w','w','w','w','w']
+        ]
+        
+        self.board_cols = {
+            0: 'h',
+            1: 'g',
+            2: 'f',
+            3: 'e',
+            4: 'd',
+            5: 'c',
+            6: 'b',
+            7: 'a'
+        }
 
         # Setup initial gpio parameters
         gpio.setmode(gpio.BCM)
@@ -180,6 +224,30 @@ class Board:
                 else:
                     print(f"{bcolors.OKGREEN}{self.board[i][j]}{bcolors.ENDC}", end=" ")
             print()
+        
+        print(self.pgn)
+        print(self.castling)
+    
+    def board_error(self):
+        """Reset board to previously stable board."""
+        
+        print("An error has occured. Please reset the board to this position:\n")
+        
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i])-1,-1,-1):
+                if self.possession[i][j] == 'w':
+                    print(f"{bcolors.WARNING}{self.stable_board[i][j]}{bcolors.ENDC}", end=" ")
+                elif self.possession[i][j] == 'b':
+                    print(f"{bcolors.OKBLUE}{self.stable_board[i][j]}{bcolors.ENDC}", end=" ")
+                else:
+                    print(f"{bcolors.OKGREEN}{self.stable_board[i][j]}{bcolors.ENDC}", end=" ")
+            print()
+        
+        print("\nPress enter to continue...")
+        input()
+        
+        self.board = self.stable_board
+        self.possession = self.stable_possession
     
     def play_game(self):
         board_map = [
@@ -227,6 +295,8 @@ class Board:
                 ['-','-','-','-','-','-','-','-']
             ]
             
+            error = False
+            
             for i in range(len(current_board_map)):
                 for j in range(len(current_board_map[i])):
                     
@@ -237,19 +307,131 @@ class Board:
                         current_board[i][j] = self.board[i][j]
                         current_possession[i][j] = self.possession[i][j]
                     elif piece_found and not prev_on_board:
+                        if self.moving_piece is None:
+                            self.board_error()
+                            error = True
+                            continue
+                        
                         current_board[i][j] = self.moving_piece
                         current_possession[i][j] = self.moving_piece_type
-                        self.moving_piece = None
+                        
+                        if self.moving_piece == 'R' and self.castling:
+                            self.castling = False
+                            continue
+                        
+                        old_position = '('+str(self.picked_up_from['row'])+','+str(self.picked_up_from['col'])+')'
+                        new_position = '('+str(i)+','+str(j)+')'
+                        
+                        if (old_position != new_position):
+                            
+                            self.current_move += 0.5
+                            
+                            output = ""
+                            
+                            if self.current_move % 1:
+                                
+                                output = str(int(self.current_move + 0.5)) + '. '
+                                if self.moving_piece == 'p':
+                                    output += self.board_cols[self.picked_up_from['col']]
+                                    if self.potential_captured['row'] == i and self.potential_captured['col'] == j:
+                                        output += 'x'
+                                    output += self.board_cols[j]
+                                    output += str(8-i)
+                                elif self.moving_piece == 'K' and self.board_cols[self.picked_up_from['col']] == 'e':
+                                    
+                                    if self.board_cols[j] == 'g':
+                                        self.castling = True
+                                        output += 'O-O'
+                                    
+                                    elif self.board_cols[j] == 'c':
+                                        self.castling = True
+                                        output += 'O-O-O'
+                                    
+                                    else:
+                                        output += self.moving_piece
+                                        output += self.board_cols[self.picked_up_from['col']]
+                                        if self.potential_captured['row'] == i and self.potential_captured['col'] == j:
+                                            output += 'x'
+                                        output += self.board_cols[j]
+                                        output += str(8-i)
+                                        
+                                else:
+                                    output += self.moving_piece
+                                    output += self.board_cols[self.picked_up_from['col']]
+                                    if self.potential_captured['row'] == i and self.potential_captured['col'] == j:
+                                        output += 'x'
+                                    output += self.board_cols[j]
+                                    output += str(8-i)
+                                
+                                output += " "
+                            
+                            else:
+                                if self.moving_piece == 'p':
+                                    output += self.board_cols[self.picked_up_from['col']]
+                                    if self.potential_captured['row'] == i and self.potential_captured['col'] == j:
+                                        output += 'x'
+                                    output += self.board_cols[j]
+                                    output += str(8-i)
+                                elif self.moving_piece == 'K' and self.board_cols[self.picked_up_from['col']] == 'e':
+                                    
+                                    if self.board_cols[j] == 'g':
+                                        self.castling = True
+                                        output += 'O-O'
+                                    
+                                    elif self.board_cols[j] == 'c':
+                                        self.castling = True
+                                        output += 'O-O-O'
+                                    
+                                    else:
+                                        output += self.moving_piece
+                                        output += self.board_cols[self.picked_up_from['col']]
+                                        if self.potential_captured['row'] == i and self.potential_captured['col'] == j:
+                                            output += 'x'
+                                        output += self.board_cols[j]
+                                        output += str(8-i)
+                                else:
+                                    output += self.moving_piece
+                                    output += self.board_cols[self.picked_up_from['col']]
+                                    if self.potential_captured['row'] == i and self.potential_captured['col'] == j:
+                                        output += 'x'
+                                    output += self.board_cols[j]
+                                    output += str(8-i)
+                                
+                                output += " "
+                                
+                            self.pgn += output
+                            
+                            self.moving_piece = None
+                            self.moving_piece_type = None
+                            self.potential_captured['row'] = None
+                            self.potential_captured['col'] = None
+                        
                     elif not piece_found and prev_on_board:
                         current_board[i][j] = '-'
                         current_possession[i][j] = '-'
                         self.moving_piece = self.board[i][j]
                         self.moving_piece_type = self.possession[i][j]
+                        
+                        self.picked_up_from['row'] = i
+                        self.picked_up_from['col'] = j
+                        if self.potential_captured['row'] == None:
+                            self.potential_captured['row'] = i
+                            self.potential_captured['col'] = j
                     elif not piece_found and not prev_on_board:
                         current_board[i][j] = '-'
                         current_possession[i][j] = '-'
+                else:
+                    continue
+                break
             
-            self.board = current_board
-            self.possession = current_possession
+            if not error:
+                self.board = current_board
+                self.possession = current_possession
+                
+                if self.moving_piece is None and self.moving_piece_type is None:
+                    self.stable_board = self.board
+                    self.stable_possession = self.possession
+            
+                self.print_board()
         
-            self.print_board()
+        return self.pgn
